@@ -26,7 +26,6 @@ func init() {
 // httpSender sends a request with method, path, payload, and headers.
 // Returns response body as []byte.
 func httpSender(method, path string, payload any, headers map[string]string) ([]byte, error) {
-	println("Sending request to:", url + path)
 	var body io.Reader
 
 	// Marshal payload only if it's not nil
