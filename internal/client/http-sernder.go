@@ -18,7 +18,7 @@ func init() {
 	_ = godotenv.Load()
 	url = os.Getenv("SERVER_URL")
 	if url == "" {
-		url = "http://localhost:8080"
+		url = "http://13.48.44.95:8080"
 	}
 }
 
