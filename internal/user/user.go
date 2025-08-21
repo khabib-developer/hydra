@@ -10,6 +10,7 @@ type User struct {
 	Password      string
 	Conn          *websocket.Conn
 	PermanantData *PermanentData
+	JoinedChannel *Channel
 }
 
 type PermanentData struct {

@@ -26,3 +26,21 @@ func onReceiveMessage(_ *user.User, payload json.RawMessage, _ chan string) erro
 	)
 	return nil
 }
+
+func onReceiveMessageFromChannel(_ *user.User, payload json.RawMessage, _ chan string) error {
+	var channelMessageDto dto.ChannelMessageDto
+	if err := json.Unmarshal(payload, &channelMessageDto); err != nil {
+		log.Printf("⚠ Payload error: %v", err)
+		return err
+	}
+
+	// Example: [15:04] #general @Alice: Hello world
+	fmt.Printf("%s[%s]%s %s#%s%s %s@%s%s: %s\n",
+		cyan, time.Now().Format("15:04"), reset,      // timestamp
+		magenta, channelMessageDto.Channel, reset,   // channel name
+		green, channelMessageDto.Sender, reset,      // sender
+		channelMessageDto.Message,                   // message
+	)
+
+	return nil
+}

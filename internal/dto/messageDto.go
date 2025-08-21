@@ -10,3 +10,9 @@ type ReceiveMessageDto struct {
 	Sender string `json:"sender"`
 	Message  string	`json:"message"`
 }
+
+type ChannelMessageDto struct {
+	Channel string `json:"channel"`
+	Sender  string `json:"sender"`
+	Message string `json:"message"`
+}

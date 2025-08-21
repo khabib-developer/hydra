@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 
@@ -11,9 +12,10 @@ import (
 )
 
 const (
-	green = "\033[32m"
-	cyan  = "\033[36m"
-	reset = "\033[0m"
+	green   = "\033[32m"
+	cyan    = "\033[36m"
+	magenta = "\033[35m"
+	reset   = "\033[0m"
 )
 
 
@@ -49,12 +51,14 @@ func Listen(u *user.User, state chan string) {
 		} else {
 			log.Printf("⚠ Unknown command: %s", websocketDto.MessageType)
 		}
+		fmt.Print("> ")
 	}
 }
 
 var commandHandlers = map[dto.MessageType]func(*user.User, json.RawMessage, chan string) error{
-	dto.MessageTypeMessage:  onReceiveMessage,
-	dto.MessageTypePassword: onAskPassword,
-	dto.MessageTypeInfo:     onReceiveInfo,
-	dto.MessageTypeError:    onReceiveError,
+	dto.MessageTypeMessage:   onReceiveMessage,
+	dto.MessageTypePassword:  onAskPassword,
+	dto.MessageTypeInfo:      onReceiveInfo,
+	dto.MessageTypeError:     onReceiveError,
+	dto.MessageTypeBroadcast: onReceiveMessageFromChannel,
 }

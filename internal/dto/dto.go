@@ -18,19 +18,23 @@ const (
 	CmdExit      Command = "/exit"
 	CmdUsers     Command = "/users"
 	CmdChannels  Command = "/channels"
+	CmdMembers   Command = "/members"
+	CmdCurrent   Command = "/current"
+	CmdInfo      Command = "/profile"
 )
 
 
 const (
-	MessageTypeError    MessageType = "error"
-	MessageTypePassword MessageType = "password"
-	MessageTypeInfo     MessageType = "info"
-	MessageTypeMessage  MessageType = "message"
-	MessageTypeClose    MessageType = "close"
-	MessageTypeJoin     MessageType = "join"
-	MessageTypeCreate   MessageType = "create"
-	MessageTypeDestroy  MessageType = "destroy"
-	MessageTypeFile     MessageType = "file"
+	MessageTypeError      MessageType = "error"
+	MessageTypePassword   MessageType = "password"
+	MessageTypeInfo       MessageType = "info"
+	MessageTypeMessage    MessageType = "message"
+	MessageTypeBroadcast  MessageType = "broadcast"
+	MessageTypeClose      MessageType = "close"
+	MessageTypeJoin       MessageType = "join"
+	MessageTypeCreate     MessageType = "create"
+	MessageTypeDestroy    MessageType = "destroy"
+	MessageTypeFile       MessageType = "file"
 )
 
 var AllCommands = []Command{
@@ -42,6 +46,10 @@ var AllCommands = []Command{
 	CmdExit,
 	CmdUsers,
 	CmdChannels,
+	CmdMembers,
+	CmdCurrent,
+	CmdInfo,
+	
 }
 
 var AllMessageTypes = []MessageType{

@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"net/http"
 
-	. "github.com/khabib-developer/chat-application/internal/server"
+	"github.com/khabib-developer/chat-application/internal/server"
 )
 
 
 func main() {
 
-	server := NewServer()
+	server := server.NewServer()
 
     http.HandleFunc("/auth", server.Auth)
     http.HandleFunc("/connect", server.Connect)
     http.HandleFunc("/getActiveUsers", server.CheckAuth(server.GetActiveUsers))
+    http.HandleFunc("/getChannels", server.CheckAuth(server.GetChannels))
+    http.HandleFunc("/getCurrentChannel", server.CheckAuth(server.GetCurrentChannel))
+    http.HandleFunc("/getChannelMembers", server.CheckAuth(server.GetChannelMembers))
 
     fmt.Println("WebSocket server started on :8080")
     err := http.ListenAndServe(":8080", nil)

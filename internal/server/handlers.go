@@ -36,12 +36,10 @@ func(server *Server) Connect(w http.ResponseWriter, r *http.Request) {
 		server.closeConnection(ws, err.Error())
 	}
 	
-
-
 	go server.listen(connID, ws)
-
 }
 
+// get Iformation
 
 func(server *Server) GetActiveUsers(w http.ResponseWriter, r *http.Request) {
 	users := make([]user.UserDTO, 0, len(server.Users))
@@ -62,7 +60,70 @@ func(server *Server) GetActiveUsers(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte(msg))
 }
 
+func(server *Server) GetChannels(w http.ResponseWriter, r *http.Request) {
+	channels := make([]dto.ChannelDto, len(server.Channels))
+	i := 0
+	connID := r.Header.Get("connID")
+	user := server.Users[connID]
 
+
+	for _, channel := range server.Channels {
+		channels[i] = dto.ChannelDto{
+			Name:    channel.Name,
+			Members: len(channel.Users),
+			Mine:    user == channel.Owner,
+		}
+		i++
+	}
+	msg, err := json.Marshal(channels)
+	if err != nil {
+		fmt.Println("marshal error:", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(msg))
+}
+
+func(server *Server) GetCurrentChannel(w http.ResponseWriter, r *http.Request) {
+	connID := r.Header.Get("connID")
+	user := server.Users[connID]	
+	
+	if user.JoinedChannel == nil {
+		http.Error(w, "User is not in a channel", http.StatusBadRequest)
+		return
+	}
+
+	channelName, err := json.Marshal(user.JoinedChannel.Name)
+	if err != nil {
+		http.Error(w, "Failed to marshal channel name", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(channelName)
+}
+
+func(server *Server) GetChannelMembers(w http.ResponseWriter, r *http.Request) {
+	users := make([]user.UserDTO, 0, len(server.Users))
+	for _, userItem := range server.Users {
+		users = append(users, user.UserDTO{
+			Username: userItem.Username,
+			Private:  len(userItem.Password) > 0,
+		})
+	}
+
+	msg, err := json.Marshal(users)
+	if err != nil {
+		fmt.Println("marshal error:", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+    w.Write([]byte(msg))
+	
+
+}
 
 func(server *Server) sendMessage(ws *websocket.Conn, messageType dto.MessageType, payload json.RawMessage ) {
 	data := dto.WebsocketDto{

@@ -24,7 +24,6 @@ func (server *Server) listen(connID string, ws *websocket.Conn) {
 
 		if messageType == websocket.TextMessage {
 
-
 			var payload dto.WebsocketDto
 
 			if err := json.Unmarshal(msg, &payload); err != nil {
@@ -34,18 +33,14 @@ func (server *Server) listen(connID string, ws *websocket.Conn) {
 
 			sender := server.Users[connID]
 
-			switch payload.MessageType {
-			case dto.MessageTypeMessage:
-				server.sendDirectMessage(payload.Payload, sender)
-			case dto.MessageTypeJoin:
-			case dto.MessageTypeCreate:
-			case dto.MessageTypePassword:
 
-				server.handlePassword(payload.Payload, sender)
-
-
+			if handler, ok := server.handlers[payload.MessageType]; ok {
+				handler(payload.Payload, sender)
+			} else {
+				server.sendRawMessage(ws, dto.MessageTypeError, "unknown command")
 			}
 			
 		}
 	}
 }
+

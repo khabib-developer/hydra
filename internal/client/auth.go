@@ -25,6 +25,5 @@ func Auth(u *user.User) error {
 
 	u.ID = string(respBody)
 
-	fmt.Println("Response:", string(respBody))
 	return nil
 }

@@ -7,7 +7,6 @@ import (
 )
 
 func onAskPassword(u *user.User, _ json.RawMessage, state chan string) error {
-
 	state <- StatePassword
     return nil
 

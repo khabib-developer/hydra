@@ -81,6 +81,7 @@ func ReceiveCommands(u *user.User, state chan string) error {
 				}
 				channelName := args[1]
 				fmt.Printf("✅ Creating channel: %s\n", channelName)
+				create(u, channelName)
 
 			case dto.CmdBroadcast:
 				if len(args) < 2 {
@@ -88,7 +89,7 @@ func ReceiveCommands(u *user.User, state chan string) error {
 					continue
 				}
 				message := strings.Join(args[1:], " ")
-				fmt.Printf("📢 Broadcasting: %s\n", message)
+				broadcast(u, message)
 
 			case dto.CmdJoin:
 				if len(args) < 2 {
@@ -96,7 +97,7 @@ func ReceiveCommands(u *user.User, state chan string) error {
 					continue
 				}
 				channelName := args[1]
-				fmt.Printf("📡 Joining channel: %s\n", channelName)
+				join(u, channelName)
 
 			case dto.CmdMessage:
 				if len(args) < 3 {
@@ -119,11 +120,19 @@ func ReceiveCommands(u *user.User, state chan string) error {
 				//fmt.Printf("✉ Sending message to %s: %s\n", targetUser, message)
 
 			case dto.CmdChannels: 
-				fmt.Println("List of channels")
+				getChannels(u)
 
 			case dto.CmdUsers: 
-				GetActiveUsers(u)
-				
+				getActiveUsers(u)
+
+			case dto.CmdCurrent: 
+				getCurrentChannel(u)
+
+			case dto.CmdMembers: 
+				getChannelMembers(u)
+
+			case dto.CmdInfo: 
+				getProfileInfo(u)
 
 			case dto.CmdExit:
 				fmt.Println("👋 Exiting...")

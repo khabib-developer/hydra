@@ -47,7 +47,7 @@ func(server *Server) sendDirectMessage(payload json.RawMessage, sender *user.Use
 
 
 func(server *Server) handlePassword(payload json.RawMessage, sender *user.User) {
-	 var password string
+	var password string
     if err := json.Unmarshal(payload, &password); err != nil {
 		println(err)
 		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupperted type of password")
