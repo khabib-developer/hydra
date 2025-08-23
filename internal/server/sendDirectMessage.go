@@ -32,12 +32,12 @@ func(server *Server) sendDirectMessage(payload json.RawMessage, sender *user.Use
 	}
 
 	if len(receiver.Password) != 0 {
-		permanantData := user.PermanentData{
+		permanentData := user.PermanentData{
 			Expect:   receiver.Password,
 			Data:     messagePayload.Message,
 			Receiver: receiver,
 		}
-		sender.PermanantData = &permanantData
+		sender.PermanentData = &permanentData
 		server.sendRawMessage(sender.Conn, dto.MessageTypePassword, "Password of user: ")
 		return
 	}
@@ -54,19 +54,19 @@ func(server *Server) handlePassword(payload json.RawMessage, sender *user.User) 
 		return
     }
 	
-	if sender.PermanantData == nil {
+	if sender.PermanentData == nil {
 		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "User did not expect password")
 		return
 	}
 
-	if sender.PermanantData.Expect != password {
+	if sender.PermanentData.Expect != password {
 		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Wrong password")
 		return
 	}
 
-	server.sendActualMessage(sender, sender.PermanantData.Receiver, sender.PermanantData.Data)
+	server.sendActualMessage(sender, sender.PermanentData.Receiver, sender.PermanentData.Data)
 
-	sender.PermanantData = nil
+	sender.PermanentData = nil
 }
 
 

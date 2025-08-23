@@ -20,7 +20,13 @@ const (
 	CmdChannels  Command = "/channels"
 	CmdMembers   Command = "/members"
 	CmdCurrent   Command = "/current"
+	CmdDestroy   Command = "/destroy"
 	CmdInfo      Command = "/profile"
+
+
+	CmdFile      Command = "/file"
+	CmdProgress  Command = "/file_progress"
+	CmdCancel    Command = "/file_cancel"
 )
 
 
@@ -34,7 +40,9 @@ const (
 	MessageTypeJoin       MessageType = "join"
 	MessageTypeCreate     MessageType = "create"
 	MessageTypeDestroy    MessageType = "destroy"
+	MessageTypeCancel     MessageType = "cancel"
 	MessageTypeFile       MessageType = "file"
+	MessageTypeFileChunk  MessageType = "file_chunk"
 )
 
 var AllCommands = []Command{
@@ -48,8 +56,10 @@ var AllCommands = []Command{
 	CmdChannels,
 	CmdMembers,
 	CmdCurrent,
+	CmdDestroy,
 	CmdInfo,
-	
+	CmdFile,
+
 }
 
 var AllMessageTypes = []MessageType{
@@ -57,6 +67,13 @@ var AllMessageTypes = []MessageType{
 	MessageTypeInfo,
 	MessageTypeMessage,
 	MessageTypePassword,
+	MessageTypeBroadcast,
+	MessageTypeClose,
+	MessageTypeJoin,
+	MessageTypeCreate,
+	MessageTypeDestroy,
+	MessageTypeFile,
+	MessageTypeFileChunk,
 }
 
 type WebsocketDto struct {

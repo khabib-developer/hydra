@@ -12,7 +12,7 @@ func (server *Server) createChannel(payload json.RawMessage, sender *user.User) 
 	var channelName string
     if err := json.Unmarshal(payload, &channelName); err != nil {
 		println(err)
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupperted type of channel name")
+		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupported type of channel name")
 		return
     }
 
@@ -145,7 +145,6 @@ func (server *Server) destroyChannel(payload json.RawMessage, sender *user.User)
 	for _, user := range channelToDestroy.Users {
 		user.JoinedChannel = nil
 		server.sendRawMessage(user.Conn, dto.MessageTypeInfo, fmt.Sprintf("Channel '%s' has been destroyed", channelToDestroy.Name))
-		return
 	}
 
 	if index != -1 {
@@ -153,6 +152,20 @@ func (server *Server) destroyChannel(payload json.RawMessage, sender *user.User)
 	}
 }
 
+func(server *Server) destroyUserChannels(u *user.User) {
+	for _, channel := range server.Channels {
+		if channel.Owner == u {
+			
+			channelNameJson, err := json.Marshal(channel.Name)
 
+			if err != nil {
+				return
+			}
+
+			server.destroyChannel(channelNameJson, u)
+
+		}
+	}
+}
 
 	

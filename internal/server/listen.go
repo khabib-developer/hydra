@@ -9,9 +9,13 @@ import (
 )
 
 func (server *Server) listen(connID string, ws *websocket.Conn) {
+	sender := server.Users[connID]
 	defer func() {
 		ws.Close()
 		delete(server.Users, connID)
+
+		server.destroyUserChannels(sender)
+		
 		fmt.Println("connection closed for", connID)
 	}()
 
@@ -31,7 +35,7 @@ func (server *Server) listen(connID string, ws *websocket.Conn) {
 				return
 			}
 
-			sender := server.Users[connID]
+			fmt.Println(string(payload.Payload))
 
 
 			if handler, ok := server.handlers[payload.MessageType]; ok {

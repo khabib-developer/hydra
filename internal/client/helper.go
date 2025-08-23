@@ -11,5 +11,8 @@ func helper() {
 	fmt.Println("  /exit                → Exit the application")
 	fmt.Println("  /users               → List of users")
 	fmt.Println("  /channels            → List of channels")
+	fmt.Println("  /destroy <name>      → Destroy a channel")
+	fmt.Println("  /members <name>      → List members of a channel")
+	fmt.Println("  /current             → Show current channel")
 	fmt.Println()
 }

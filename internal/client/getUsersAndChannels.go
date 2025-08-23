@@ -117,3 +117,4 @@ func getProfileInfo(u *user.User) {
 	fmt.Printf("Username: %s\n", u.Username)
 	fmt.Printf("Password: %s\n", u.Password)
 }
+

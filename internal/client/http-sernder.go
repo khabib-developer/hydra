@@ -69,7 +69,7 @@ func httpSender(method, path string, payload any, headers map[string]string) ([]
 
 	// Handle non-200
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("request failed: status %s, body: %s", resp.Status, string(respBody))
+		return nil, fmt.Errorf("%s", string(respBody))
 	}
 
 	return respBody, nil

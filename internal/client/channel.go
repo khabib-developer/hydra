@@ -18,7 +18,7 @@ func create(u *user.User, channel string) {
 		return
 	}
 
-	send(u.Conn, dto.MessageTypeCreate, jsonChannel)
+	send(u, dto.MessageTypeCreate, jsonChannel)
 }
 
 func join(u *user.User, channel string) {
@@ -27,7 +27,7 @@ func join(u *user.User, channel string) {
 		return
 	}
 
-	send(u.Conn, dto.MessageTypeJoin, jsonChannel)
+	send(u, dto.MessageTypeJoin, jsonChannel)
 }
 
 func broadcast(u *user.User, message string) {
@@ -40,5 +40,14 @@ func broadcast(u *user.User, message string) {
 		return
 	}
 
-	send(u.Conn, dto.MessageTypeBroadcast, jsonMessage)
+	send(u, dto.MessageTypeBroadcast, jsonMessage)
+}
+
+func destroyChannel(u *user.User, channelName string) {
+	jsonMessage, err := json.Marshal(channelName)
+	if err != nil {
+		return
+	}
+
+	send(u, dto.MessageTypeDestroy, jsonMessage)
 }

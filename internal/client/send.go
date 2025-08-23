@@ -6,9 +6,12 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/khabib-developer/chat-application/internal/dto"
+	"github.com/khabib-developer/chat-application/internal/user"
 )
 
-func send(ws *websocket.Conn, messageType dto.MessageType, payload json.RawMessage)  {
+func send(u *user.User, messageType dto.MessageType, payload json.RawMessage)  {
+	u.Mutex.Lock()
+	defer u.Mutex.Unlock()
 	data := dto.WebsocketDto{
 		MessageType: messageType,
 		Payload:     payload,
@@ -19,11 +22,11 @@ func send(ws *websocket.Conn, messageType dto.MessageType, payload json.RawMessa
 
 	if err != nil {
 		fmt.Println("marshal error:", err)
-		ws.Close()
+		u.Conn.Close()
 	}
 
-	if err := ws.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+	if err := u.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
 		fmt.Println("write error:", err)
-		ws.Close()
+		u.Conn.Close()
 	}
 }

@@ -19,6 +19,9 @@ func NewServer() *Server {
 			dto.MessageTypeCreate:     s.createChannel,
 			dto.MessageTypeBroadcast:  s.broadcastMessage,
 			dto.MessageTypeDestroy:    s.destroyChannel,
+			dto.MessageTypeFile:       s.TransferFileMetadata,
+			dto.MessageTypeFileChunk:  s.TransferFileChunk,
+			dto.MessageTypeCancel:     s.CancelFileTransfer,
 		}
 	return s
 }

@@ -1,6 +1,8 @@
 package user
 
 import (
+	"sync"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -8,9 +10,11 @@ type User struct {
 	ID            string
 	Username      string
 	Password      string
+	Mutex		  sync.Mutex
 	Conn          *websocket.Conn
-	PermanantData *PermanentData
+	PermanentData *PermanentData
 	JoinedChannel *Channel
+	PermanentFile *PermanentFileData
 }
 
 type PermanentData struct {

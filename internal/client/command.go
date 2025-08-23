@@ -44,7 +44,7 @@ func ReceiveCommands(u *user.User, state chan string) error {
 				if err != nil {
 					return fmt.Errorf("marshal password: %w", err)
 				}
-                send(u.Conn, dto.MessageTypePassword, pwdJSON)
+                send(u, dto.MessageTypePassword, pwdJSON)
                 currentState = StateNormal
                 continue
             }
@@ -114,10 +114,8 @@ func ReceiveCommands(u *user.User, state chan string) error {
 				if err != nil {
 					return err
 				}
-				send(u.Conn, dto.MessageTypeMessage, payloadBytes)
+				send(u, dto.MessageTypeMessage, payloadBytes)
 				time.Sleep(time.Millisecond * 500)
-
-				//fmt.Printf("✉ Sending message to %s: %s\n", targetUser, message)
 
 			case dto.CmdChannels: 
 				getChannels(u)
@@ -130,6 +128,21 @@ func ReceiveCommands(u *user.User, state chan string) error {
 
 			case dto.CmdMembers: 
 				getChannelMembers(u)
+
+			case dto.CmdDestroy: 
+			if len(args) < 2 {
+					fmt.Println("⚠ Usage: /destroy <channel_name>")
+					continue
+				}
+				destroyChannel(u, args[1])
+
+			case dto.CmdFile:
+				if len(args) < 3 {
+					fmt.Println("⚠ Usage: /file <username> <path>")
+					continue
+				}
+				fileTransfer(u, args[1], args[2])
+				
 
 			case dto.CmdInfo: 
 				getProfileInfo(u)
