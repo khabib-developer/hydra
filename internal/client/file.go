@@ -149,9 +149,15 @@ func onReceiveFileMetadata(u *user.User, payload json.RawMessage, _ chan string)
 		Size: fileDto.Size,
 	}
 
-	os.MkdirAll(dir, 0755)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create dir %s: %w", dir, err)
+	}
 
-	free, _ := utils.GetFreeSpace(dir)
+	free, err := utils.GetFreeSpace(dir)
+
+	if err != nil {
+		return err
+	}
 
 	if free < uint64(fileDto.Size) {
 		return fmt.Errorf("not enough disk space: need %d, have %d", fileDto.Size, free)
