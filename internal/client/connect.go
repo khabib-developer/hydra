@@ -17,7 +17,7 @@ func init() {
 	_ = godotenv.Load()
 	wsurl = os.Getenv("WS_URL")
 	if wsurl == "" {
-		wsurl = "ws://localhost:8080"
+		wsurl = "ws://13.48.44.95:8080"
 	}
 }
 
