@@ -43,9 +43,14 @@ changelog:
 
 brews:
   - name: hydra
-    tap: khabib-developer/homebrew-hydra
+    repository:
+      owner: khabib-developer
+      name: homebrew-tap
     commit_author:
       name: khabib-developer
       email: habibsharopov501@gmail.com
-    description: "Hydra - chat application with file transfer"
+    description: "Hydra — cross-platform chat and file sharing app"
     homepage: "https://github.com/khabib-developer/hydra"
+    license: "MIT"
+    install: |
+      bin.install "hydra"
