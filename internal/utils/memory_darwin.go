@@ -1,3 +1,6 @@
+//go:build darwin
+// +build darwin
+
 package utils
 
 import "golang.org/x/sys/unix"
