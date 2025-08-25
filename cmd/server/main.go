@@ -12,6 +12,7 @@ func main() {
 
 	server := server.NewServer()
 
+    http.HandleFunc("/version", server.Version)
     http.HandleFunc("/auth", server.Auth)
     http.HandleFunc("/connect", server.Connect)
     http.HandleFunc("/getActiveUsers", server.CheckAuth(server.GetActiveUsers))

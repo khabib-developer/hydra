@@ -8,6 +8,14 @@ import (
 )
 
 func main() {
+
+	err := client.GetVersion()
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	client.Draw()
 	user := user.User{}
 

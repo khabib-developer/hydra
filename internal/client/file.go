@@ -17,8 +17,6 @@ import (
 
 const ChunkSize /*bytes*/ = 1024 * 256  // 1mb
 
-const dir = "files"
-
 
 func fileTransfer(u *user.User,username string, path string) {
 	f, err := os.Open(path)
@@ -149,6 +147,10 @@ func onReceiveFileMetadata(u *user.User, payload json.RawMessage, _ chan string)
 		Size: fileDto.Size,
 	}
 
+	dir, err := getSaveDir()
+
+	if err != nil {return err}
+
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("failed to create dir %s: %w", dir, err)
 	}
@@ -242,6 +244,23 @@ func onReceiveFileChunk(u *user.User, payload json.RawMessage, _ chan string) er
 func onReceiveCancelTransfer(u *user.User, payload json.RawMessage, _ chan string) error {
 	
 	return nil
+}
+
+
+func getSaveDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("cannot detect home dir: %w", err)
+	}
+
+	dir := filepath.Join(home, "hydra-files")
+
+	// Create the folder if it doesn't exist
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create save dir: %w", err)
+	}
+
+	return dir, nil
 }
 
 

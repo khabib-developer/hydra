@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/khabib-developer/chat-application/internal/dto"
 	"github.com/khabib-developer/chat-application/internal/user"
+	"github.com/khabib-developer/chat-application/internal/version"
 )
 
 type AuthRequest struct {
@@ -186,7 +187,6 @@ func(server *Server) usernameExists(username string) bool {
 }
 
 
-
 func(server *Server) Auth(w http.ResponseWriter, r *http.Request) {
 	req := AuthRequest{}
 
@@ -214,3 +214,7 @@ func(server *Server) Auth(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte(connID))
 }
 
+func(server *Server) Version(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+    w.Write([]byte(version.GetVersion()))
+}

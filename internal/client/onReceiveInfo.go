@@ -23,7 +23,7 @@ func onReceiveInfo(_ *user.User, payload json.RawMessage, _ chan string) error {
 	)
 
 	// Example: print green
-	fmt.Println(string(green), info, string(reset))
+	fmt.Println(":",string(green), info, string(reset))
 
 	return nil
 }
