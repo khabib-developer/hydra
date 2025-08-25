@@ -10,8 +10,8 @@ import (
 )
 
 func send(u *user.User, messageType dto.MessageType, payload json.RawMessage)  {
-	u.Mutex.Lock()
-	defer u.Mutex.Unlock()
+	u.SafeConn.Mutex.Lock()
+	defer u.SafeConn.Mutex.Unlock()
 	data := dto.WebsocketDto{
 		MessageType: messageType,
 		Payload:     payload,
@@ -22,11 +22,11 @@ func send(u *user.User, messageType dto.MessageType, payload json.RawMessage)  {
 
 	if err != nil {
 		fmt.Println("marshal error:", err)
-		u.Conn.Close()
+		u.SafeConn.Conn.Close()
 	}
 
-	if err := u.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+	if err := u.SafeConn.Conn.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
 		fmt.Println("write error:", err)
-		u.Conn.Close()
+		u.SafeConn.Conn.Close()
 	}
 }

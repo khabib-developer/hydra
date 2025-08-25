@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
@@ -16,7 +17,7 @@ func init() {
 	_ = godotenv.Load()
 	wsurl = os.Getenv("WS_URL")
 	if wsurl == "" {
-		wsurl = "ws://13.48.44.95:8080"
+		wsurl = "ws://localhost:8080"
 	}
 }
 
@@ -35,5 +36,9 @@ func Connect(u *user.User) {
 	}
 
 	log.Println("Connected to server with connID:", u.ID)
-	u.Conn = conn
+	safeConn := user.SafeConn{
+		Conn: conn,
+		Mutex: sync.Mutex{},
+	}
+	u.SafeConn = &safeConn
 }

@@ -16,7 +16,7 @@ func(server *Server) TransferFileMetadata(payload json.RawMessage, sender *user.
 	if err := json.Unmarshal(payload, &fileMetadata); err != nil {
 		// Handle error
 		println(err)
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupported type of file metadata")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Unsupported type of file metadata")
 		return
 	}
 
@@ -28,19 +28,18 @@ func(server *Server) TransferFileMetadata(payload json.RawMessage, sender *user.
 		}
 	}
 
-
 	if receiver == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Username not found")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Username not found")
 		return
 	}
 
 	if sender.PermanentFile != nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "You can send only one file in the same time")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "You can send only one file in the same time")
 		return
 	}
 
 	if receiver.PermanentFile != nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Receiver can accept only one file in the same time.")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Receiver can accept only one file in the same time.")
 		return
 	}
 
@@ -58,14 +57,24 @@ func(server *Server) TransferFileMetadata(payload json.RawMessage, sender *user.
 	receiver.PermanentFile = permanentFileData
 
 
-	fileDtoJson, err := json.Marshal(permanentFileData)
+	fileDto := dto.FileDto{
+		ID: fileMetadata.ID,
+		Receiver: receiver.Username,
+		Sender: sender.Username,
+		Filename: fileMetadata.Filename,
+		Total: fileMetadata.Total,
+		Size: fileMetadata.Size,
+	}
+
+
+	fileDtoJson, err := json.Marshal(fileDto)
 	if err != nil {
 		fmt.Println(err)
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupported type of file metadata")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Unsupported type of file metadata")
 		return
 	}
 
-	server.sendMessage(sender.Conn, dto.MessageTypeFile, fileDtoJson)
+	server.sendMessage(receiver.SafeConn, dto.MessageTypeFile, fileDtoJson)
 }
 
 func(server *Server) TransferFileChunk(payload json.RawMessage, sender *user.User) {
@@ -75,57 +84,54 @@ func(server *Server) TransferFileChunk(payload json.RawMessage, sender *user.Use
 	err := json.Unmarshal(payload, &fileChunkDto)
 
 	if err != nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupported type of file")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Unsupported type of file")
 		return
 	}
 
 	if sender.PermanentFile == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "User is not expecting file")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "User is not expecting file")
 		return
 	}
 
 	if sender.PermanentFile.Receiver == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "User is not expecting file")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "User is not expecting file")
 		return
 	}
 
 	if sender.PermanentFile.ID != fileChunkDto.ID {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "You can send only one file in the same time")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "You can send only one file in the same time")
 		return
 	}
 
-	if sender.PermanentFile.Total >= sender.PermanentFile.Index {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "File has been sent completely")
+	if sender.PermanentFile.Index >= sender.PermanentFile.Total {
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "File has been sent completely")
 		return
 	}
 
-	if sender.PermanentFile.Index == 0 {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeInfo, "Your file has been started to transfer. To see progress type /progress. To cancel file transfer type /cancel")
-	}
 
 	sender.PermanentFile.Index++
 
-	server.sendMessage(sender.PermanentData.Receiver.Conn, dto.MessageTypeFileChunk, payload)
+	server.sendMessage(sender.PermanentFile.Receiver.SafeConn, dto.MessageTypeFileChunk, payload)
 
 	if sender.PermanentFile.Total == sender.PermanentFile.Index {
-		sender.PermanentFile = nil
 		sender.PermanentFile.Receiver.PermanentFile = nil
+		sender.PermanentFile = nil
 	}
 }	
 
 func(server *Server) ProgressFileTransfer(_ json.RawMessage, sender *user.User) {
 	if sender.PermanentFile == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "You are not sending file")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "You are not sending file")
 		return
 	}
 	progress := (sender.PermanentFile.Index * 100) / sender.PermanentFile.Total
-	server.sendRawMessage(sender.Conn, dto.MessageTypeInfo, fmt.Sprintf("Progress %v", progress))
+	server.sendRawMessage(sender.SafeConn, dto.MessageTypeInfo, fmt.Sprintf("Progress %v", progress))
 }
 
 
 func(server *Server) CancelFileTransfer(_ json.RawMessage, sender *user.User) {
 	if sender.PermanentFile == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "You are not transfering file")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "You are not transfering file")
 		return
 	}
 
@@ -133,11 +139,11 @@ func(server *Server) CancelFileTransfer(_ json.RawMessage, sender *user.User) {
 	sender.PermanentFile.Receiver.PermanentFile = nil
 
 	if sender == sender.PermanentFile.Sender {
-		server.sendRawMessage(sender.PermanentFile.Receiver.Conn, dto.MessageTypeCancel, sender.PermanentFile.ID)
+		server.sendRawMessage(sender.PermanentFile.Receiver.SafeConn, dto.MessageTypeCancel, sender.PermanentFile.ID)
 	} else {
-		server.sendRawMessage(sender.PermanentFile.Sender.Conn, dto.MessageTypeCancel, sender.PermanentFile.ID)
+		server.sendRawMessage(sender.PermanentFile.Sender.SafeConn, dto.MessageTypeCancel, sender.PermanentFile.ID)
 	}
 
-	server.sendRawMessage(sender.PermanentFile.Sender.Conn, dto.MessageTypeInfo, "File transfer has been canceled")
-	server.sendRawMessage(sender.PermanentFile.Receiver.Conn, dto.MessageTypeInfo, "File transfer has been canceled")
+	server.sendRawMessage(sender.PermanentFile.Sender.SafeConn, dto.MessageTypeInfo, "File transfer has been canceled")
+	server.sendRawMessage(sender.PermanentFile.Receiver.SafeConn, dto.MessageTypeInfo, "File transfer has been canceled")
 }

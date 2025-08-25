@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -21,16 +20,16 @@ const (
 
 // Listen starts listening for messages from the server
 func Listen(u *user.User, state chan string) {
-	if u.Conn == nil {
+	if u.SafeConn == nil {
 		log.Println("❌ No active websocket connection")
 		return
 	}
 
 	for {
-		messageType, msg, err := u.Conn.ReadMessage()
+		messageType, msg, err := u.SafeConn.Conn.ReadMessage()
 		if err != nil {
 			log.Printf("🔌 Connection closed: %v", err)
-			_ = u.Conn.Close()
+			_ = u.SafeConn.Conn.Close()
 			os.Exit(1) // Or notify caller to reconnect
 		}
 
@@ -51,7 +50,7 @@ func Listen(u *user.User, state chan string) {
 		} else {
 			log.Printf("⚠ Unknown command: %s", websocketDto.MessageType)
 		}
-		fmt.Print("> ")
+		
 	}
 }
 

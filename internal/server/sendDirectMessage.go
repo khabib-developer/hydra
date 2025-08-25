@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/gorilla/websocket"
 	"github.com/khabib-developer/chat-application/internal/dto"
 	"github.com/khabib-developer/chat-application/internal/user"
 )
@@ -14,7 +13,7 @@ func(server *Server) sendDirectMessage(payload json.RawMessage, sender *user.Use
 	var messagePayload dto.SendMessageDto
 
 	if err := json.Unmarshal(payload, &messagePayload); err != nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "invalid message payload")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "invalid message payload")
 		return
 	}
 
@@ -27,7 +26,7 @@ func(server *Server) sendDirectMessage(payload json.RawMessage, sender *user.Use
 	}
 
 	if receiver == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Username not found")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Username not found")
 		return
 	}
 
@@ -38,7 +37,7 @@ func(server *Server) sendDirectMessage(payload json.RawMessage, sender *user.Use
 			Receiver: receiver,
 		}
 		sender.PermanentData = &permanentData
-		server.sendRawMessage(sender.Conn, dto.MessageTypePassword, "Password of user: ")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypePassword, "Password of user: ")
 		return
 	}
 
@@ -50,17 +49,17 @@ func(server *Server) handlePassword(payload json.RawMessage, sender *user.User) 
 	var password string
     if err := json.Unmarshal(payload, &password); err != nil {
 		println(err)
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupperted type of password")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Unsupperted type of password")
 		return
     }
 	
 	if sender.PermanentData == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "User did not expect password")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "User did not expect password")
 		return
 	}
 
 	if sender.PermanentData.Expect != password {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Wrong password")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Wrong password")
 		return
 	}
 
@@ -70,12 +69,12 @@ func(server *Server) handlePassword(payload json.RawMessage, sender *user.User) 
 }
 
 
-func(server *Server) sendRawMessage(conn *websocket.Conn, messageType dto.MessageType, message string) {
+func(server *Server) sendRawMessage(safeConn *user.SafeConn, messageType dto.MessageType, message string) {
 	messageJson, err := json.Marshal(strings.TrimSpace(message))
 	if err != nil {
 		return
 	}
-	server.sendMessage(conn, messageType,  messageJson)
+	server.sendMessage(safeConn, messageType,  messageJson)
 
 }
 
@@ -86,11 +85,11 @@ func(server *Server) sendActualMessage(sender *user.User, receiver *user.User, m
 	})
 
 	if error != nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "invalid message payload")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "invalid message payload")
 		return
 	}
 
-	server.sendMessage(receiver.Conn, dto.MessageTypeMessage,  responsePayloadBytes)
+	server.sendMessage(receiver.SafeConn, dto.MessageTypeMessage,  responsePayloadBytes)
 
-	server.sendRawMessage(sender.Conn, dto.MessageTypeInfo, "Your message successfully sent")
+	server.sendRawMessage(sender.SafeConn, dto.MessageTypeInfo, "Your message successfully sent")
 }

@@ -10,11 +10,10 @@ type User struct {
 	ID            string
 	Username      string
 	Password      string
-	Mutex		  sync.Mutex
-	Conn          *websocket.Conn
 	PermanentData *PermanentData
 	JoinedChannel *Channel
 	PermanentFile *PermanentFileData
+	SafeConn 	  *SafeConn
 }
 
 type PermanentData struct {
@@ -32,4 +31,9 @@ type UserDTO struct {
 type AuthDTO struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type SafeConn struct {
+	Conn *websocket.Conn
+	Mutex sync.Mutex
 }

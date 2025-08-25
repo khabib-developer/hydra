@@ -12,13 +12,13 @@ func (server *Server) createChannel(payload json.RawMessage, sender *user.User) 
 	var channelName string
     if err := json.Unmarshal(payload, &channelName); err != nil {
 		println(err)
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupported type of channel name")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Unsupported type of channel name")
 		return
     }
 
 	for _, ch := range server.Channels {
 		if ch.Name == channelName {
-			server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Channel already exists")
+			server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Channel already exists")
 			return
 		}
 	}
@@ -43,14 +43,14 @@ func (server *Server) createChannel(payload json.RawMessage, sender *user.User) 
 
 	server.Channels = append(server.Channels, channel)
 		
-	server.sendRawMessage(sender.Conn, dto.MessageTypeInfo, "Channel created successfully")
+	server.sendRawMessage(sender.SafeConn, dto.MessageTypeInfo, "Channel created successfully")
 }
 
 func (server *Server) joinChannel(payload json.RawMessage, sender *user.User) {
 	var channelName string
     if err := json.Unmarshal(payload, &channelName); err != nil {
 		println(err)
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupperted type of channel name")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Unsupperted type of channel name")
 		return
     }
 
@@ -63,7 +63,7 @@ func (server *Server) joinChannel(payload json.RawMessage, sender *user.User) {
 	}
 
 	if channelToJoin == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Channel not found")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Channel not found")
 		return
 	}
 
@@ -80,18 +80,18 @@ func (server *Server) joinChannel(payload json.RawMessage, sender *user.User) {
 
 	sender.JoinedChannel = channelToJoin
 	channelToJoin.Users = append(channelToJoin.Users, sender)
-	server.sendRawMessage(sender.Conn, dto.MessageTypeInfo, "Successfully joined to channel") 
+	server.sendRawMessage(sender.SafeConn, dto.MessageTypeInfo, "Successfully joined to channel") 
 }
 
 func (server *Server) broadcastMessage(payload json.RawMessage, sender *user.User) {
 	var message string
 	if err := json.Unmarshal(payload, &message); err != nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Invalid message payload")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Invalid message payload")
 		return
 	}
 
 	if sender.JoinedChannel == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "You are not in a channel")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "You are not in a channel")
 		return
 	}
 
@@ -103,12 +103,12 @@ func (server *Server) broadcastMessage(payload json.RawMessage, sender *user.Use
 
 	jsonMessage, err := json.Marshal(channelMessage)
 	if err != nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Failed to marshal channel message")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Failed to marshal channel message")
 		return
 	}
 
 	for _, user := range sender.JoinedChannel.Users {
-		server.sendMessage(user.Conn, dto.MessageTypeBroadcast, jsonMessage)
+		server.sendMessage(user.SafeConn, dto.MessageTypeBroadcast, jsonMessage)
 	}
 }
 
@@ -117,7 +117,7 @@ func (server *Server) destroyChannel(payload json.RawMessage, sender *user.User)
 
 	if err := json.Unmarshal(payload, &channelName); err != nil {
 		println(err)
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Unsupported type of channel name")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Unsupported type of channel name")
 		return
 	}
 
@@ -133,18 +133,18 @@ func (server *Server) destroyChannel(payload json.RawMessage, sender *user.User)
 	}
 
 	if channelToDestroy == nil {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "Channel not found")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "Channel not found")
 		return
 	}
 
 	if channelToDestroy.Owner != sender {
-		server.sendRawMessage(sender.Conn, dto.MessageTypeError, "You are not the owner of this channel")
+		server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "You are not the owner of this channel")
 		return
 	}
 
 	for _, user := range channelToDestroy.Users {
 		user.JoinedChannel = nil
-		server.sendRawMessage(user.Conn, dto.MessageTypeInfo, fmt.Sprintf("Channel '%s' has been destroyed", channelToDestroy.Name))
+		server.sendRawMessage(user.SafeConn, dto.MessageTypeInfo, fmt.Sprintf("Channel '%s' has been destroyed", channelToDestroy.Name))
 	}
 
 	if index != -1 {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -26,17 +27,22 @@ func(server *Server) Connect(w http.ResponseWriter, r *http.Request) {
 
 	connID := r.Header.Get("connID");
 
-    if  connID == "" {
-		server.closeConnection(ws, "connID is not exist")
+	safeConn := &user.SafeConn{
+		Conn: ws,
+		Mutex: sync.Mutex{},
 	}
 
-	err = server.add(connID, ws)
+    if  connID == "" {
+		server.closeConnection(safeConn, "connID is not exist")
+	}
+
+	err = server.add(connID, safeConn)
 
 	if err != nil {
-		server.closeConnection(ws, err.Error())
+		server.closeConnection(safeConn, err.Error())
 	}
 	
-	go server.listen(connID, ws)
+	go server.listen(connID)
 }
 
 // get Iformation
@@ -125,7 +131,9 @@ func(server *Server) GetChannelMembers(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func(server *Server) sendMessage(ws *websocket.Conn, messageType dto.MessageType, payload json.RawMessage ) {
+func(server *Server) sendMessage(safeConn *user.SafeConn, messageType dto.MessageType, payload json.RawMessage ) {
+	safeConn.Mutex.Lock()
+	defer safeConn.Mutex.Unlock()
 	data := dto.WebsocketDto{
 		MessageType: messageType,
 		Payload:     payload,
@@ -133,23 +141,23 @@ func(server *Server) sendMessage(ws *websocket.Conn, messageType dto.MessageType
 	msg, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println("marshal error:", err)
-		ws.Close()
+		safeConn.Conn.Close()
 		return
 	}
 
-	if err = ws.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
+	if err = safeConn.Conn.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
 		fmt.Println("write error:", err)
-		ws.Close()
+		safeConn.Conn.Close()
 	}
 }
 
-func(server *Server) closeConnection(ws *websocket.Conn, msg string) {
-	server.sendMessage(ws, dto.MessageTypeClose, []byte(msg))
-	ws.Close()
+func(server *Server) closeConnection(safeConn *user.SafeConn, msg string) {
+	server.sendMessage(safeConn, dto.MessageTypeClose, []byte(msg))
+	safeConn.Conn.Close()
 }
 
 
-func(server *Server) add(connID string, ws *websocket.Conn) error {
+func(server *Server) add(connID string, safeConn *user.SafeConn) error {
 	if server.Users == nil {
 		server.Users = make(map[string]*user.User)
 	}
@@ -160,7 +168,7 @@ func(server *Server) add(connID string, ws *websocket.Conn) error {
 	}
 
 	// attach connection to the copy and save it back
-	u.Conn = ws
+	u.SafeConn = safeConn
 	server.Users[connID] = u
 
 	return nil

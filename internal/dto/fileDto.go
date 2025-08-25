@@ -2,8 +2,10 @@ package dto
 
 type FileDto struct {
 	ID		 string  `json:"id"`
+	Receiver string	 `json:"receiver"`
 	Sender   string  `json:"sender"`
 	Filename string  `json:"filename"`
+	Total    int64	 `json:"total"`
 	Size     int64   `json:"size"`
 }
 

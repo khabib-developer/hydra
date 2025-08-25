@@ -8,10 +8,10 @@ import (
 	"github.com/khabib-developer/chat-application/internal/dto"
 )
 
-func (server *Server) listen(connID string, ws *websocket.Conn) {
+func (server *Server) listen(connID string) {
 	sender := server.Users[connID]
 	defer func() {
-		ws.Close()
+		sender.SafeConn.Conn.Close()
 		delete(server.Users, connID)
 
 		server.destroyUserChannels(sender)
@@ -20,7 +20,7 @@ func (server *Server) listen(connID string, ws *websocket.Conn) {
 	}()
 
 	for {
-		messageType, msg, err := ws.ReadMessage()
+		messageType, msg, err := sender.SafeConn.Conn.ReadMessage()
 		if err != nil {
 			fmt.Println("read error:", err)
 			break
@@ -31,17 +31,14 @@ func (server *Server) listen(connID string, ws *websocket.Conn) {
 			var payload dto.WebsocketDto
 
 			if err := json.Unmarshal(msg, &payload); err != nil {
-				server.sendMessage(ws, dto.MessageTypeError, []byte(`"wrong type of command"`))
+				server.sendMessage(sender.SafeConn, dto.MessageTypeError, []byte(`"wrong type of command"`))
 				return
 			}
-
-			fmt.Println(string(payload.Payload))
-
 
 			if handler, ok := server.handlers[payload.MessageType]; ok {
 				handler(payload.Payload, sender)
 			} else {
-				server.sendRawMessage(ws, dto.MessageTypeError, "unknown command")
+				server.sendRawMessage(sender.SafeConn, dto.MessageTypeError, "unknown command")
 			}
 			
 		}
